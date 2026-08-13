@@ -6,13 +6,15 @@ the printer protocol is visible in those GPD definitions:
 
 - ESC/POS GS `v 0` raster command (`1d 76 30 00`)
 - 203 dpi
-- 581P/581PW: 384 printable dots, approximately 48 mm
-- 801P: 576 printable dots, approximately 72 mm
+- 581P/581PW: 56 mm media, 384 printable dots, approximately 48 mm
+- 801P/801PW: 80 mm media, 576 printable dots, approximately 72 mm
 - USB, RAW network and serial transports
 
-The filter converts CUPS PDF input to monochrome PBM at 203 dpi, crops page
-whitespace, scales content to native printer width and emits the same raster
-blocks used by the GPD protocol. It does not use Windows DLLs.
+The filter converts CUPS PDF input to monochrome PBM at 203 dpi. Receipt-sized
+pages are scaled as complete pages to preserve margins and vertical geometry;
+only trailing white rows are removed. Oversized pages are cropped to ink before
+scaling. It emits the same raster blocks used by the GPD protocol and does not
+use Windows DLLs.
 
 ## Recommended installation
 

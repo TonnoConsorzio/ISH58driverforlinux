@@ -2,7 +2,7 @@
 
 Linux/CUPS driver for iSH582 / Gprinter 581P, 581PW, 801P and 801PW thermal
 printers. Raster protocol reconstructed from the Windows driver parameters:
-203 dpi, ESC/POS GS `v 0`, 384 dots for model 581 and 576 dots for model 801.
+203 dpi, ESC/POS GS `v 0`, 384 printhead dots for model 581 and 576 dots for model 801.
 
 ## Quick installation
 
@@ -34,10 +34,14 @@ then configures the PPD, filter, queue and udev rules.
 lp -d ish582-581 document.pdf
 ```
 
-The filter rasterizes at 203 dpi, crops white margins from the PDF canvas and
-scales the content to the printer's native width. It handles A4/Letter PDFs,
-OnlyOffice PDFs, Chrome and Firefox output. Long receipts are sent in USB
-blocks to reduce printer lockups.
+The 581 printer uses 56 mm media with approximately 48 mm printable width.
+The 801 printer uses 80 mm media with approximately 72 mm printable width.
+The filter rasterizes at 203 dpi, keeps receipt-sized PDF geometry, scales the
+full page to printhead width, and trims only trailing white rows. Oversized
+A4/Letter pages use ink cropping before scaling. This prevents Firefox from
+cutting a 56 mm x 250 mm receipt while keeping receipt height variable.
+OnlyOffice PDFs, images printed through Firefox, Chrome and Firefox output are
+supported. Long receipts are sent in USB blocks to reduce printer lockups.
 
 Silent printing from a normal web page remains controlled by browser security
 policies; the driver exposes the standard CUPS queue `ish582-581`.

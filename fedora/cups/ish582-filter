@@ -14,6 +14,8 @@ from pathlib import Path
 class FilterError(RuntimeError):
     pass
 
+ROLL_WIDTH_MM = {"581": 56, "801": 80}
+
 def model_from_program() -> tuple[int, str]:
     configured = os.environ.get("ISH582_MODEL", "")
     if configured == "801":
@@ -85,6 +87,13 @@ def scale_to_width(width: int, height: int, payload: bytes, target: int) -> tupl
                 dest_row[dx // 8] |= 0x80 >> (dx & 7)
     return target, target_height, bytes(out)
 
+def prepare_page(width: int, height: int, payload: bytes, target: int, model: str) -> tuple[int, int, bytes]:
+    """Fit a PDF page without letting page geometry cut its content."""
+    media_width = round(ROLL_WIDTH_MM[model] * 203 / 25.4)
+    if width > round(media_width * 1.25):
+        width, height, payload = crop_to_ink(width, height, payload)
+    return scale_to_width(width, height, payload, target)
+
 def trim_white_rows(height: int, row_bytes: int, payload: bytes) -> tuple[int, bytes]:
     for y in range(height - 1, -1, -1):
         if any(payload[y * row_bytes : (y + 1) * row_bytes]):
@@ -135,8 +144,7 @@ def iter_render_pdf(pdf_path: str, target_width: int, model: str, options: str):
             yield quality
         for page in pages:
             width, height, payload = read_pbm(page)
-            width, height, payload = crop_to_ink(width, height, payload)
-            width, height, payload = scale_to_width(width, height, payload, target_width)
+            width, height, payload = prepare_page(width, height, payload, target_width, model)
             row_bytes = (width + 7) // 8
             height, payload = trim_white_rows(height, row_bytes, payload)
             yield from gs_v0_blocks(row_bytes, height, payload)

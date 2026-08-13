@@ -17,11 +17,11 @@
 *cupsSNMPSupplies: False
 *cupsFilter: "application/vnd.cups-pdf 0 ish582-801-filter"
 *VariablePaperSize: True
-*MinSize: 204.1 56.7
-*MaxSize: 204.1 11621.8
-*MaxMediaWidth: 204.1
+*MinSize: 226.8 56.7
+*MaxSize: 226.8 11621.8
+*MaxMediaWidth: 226.8
 *MaxMediaHeight: 11621.8
-*ParamCustomPageSize Width: 1 points 204.1 204.1
+*ParamCustomPageSize Width: 1 points 226.8 226.8
 *ParamCustomPageSize Height: 2 points 56.7 11621.8
 *ParamCustomPageSize WidthOffset: 3 points 0 0
 *ParamCustomPageSize HeightOffset: 4 points 0 0
@@ -35,17 +35,17 @@
 *OpenUI *PageSize/Page Size: PickOne
 *OrderDependency: 10 AnySetup *PageSize
 *DefaultPageSize: Roll80
-*PageSize Roll80/80 mm roll, 72 mm printable: "<</PageSize[204.1 226.8]>>setpagedevice"
+*PageSize Roll80/80 mm media, 72 mm printable: "<</PageSize[226.8 708.7]>>setpagedevice"
 *PageSize Custom/Custom size: ""
 *CloseUI: *PageSize
 *DefaultPageRegion: Roll80
-*PageRegion Roll80/80 mm roll, 72 mm printable: "<</PageSize[204.1 226.8]>>setpagedevice"
+*PageRegion Roll80/80 mm media, 72 mm printable: "<</PageSize[226.8 708.7]>>setpagedevice"
 *PageRegion Custom/Custom size: ""
-*ImageableArea Roll80/80 mm roll, 72 mm printable: "0 0 204.1 226.8"
-*ImageableArea Custom/Custom size: "0 0 204.1 226.8"
+*ImageableArea Roll80/80 mm media, 72 mm printable: "0 0 226.8 708.7"
+*ImageableArea Custom/Custom size: "0 0 226.8 708.7"
 *DefaultImageableArea: Roll80
-*PaperDimension Roll80/80 mm roll, 72 mm printable: "204.1 226.8"
-*PaperDimension Custom/Custom size: "204.1 226.8"
+*PaperDimension Roll80/80 mm media, 72 mm printable: "226.8 708.7"
+*PaperDimension Custom/Custom size: "226.8 708.7"
 *DefaultPaperDimension: Roll80
 *HWMargins: 0 0 0 0
 *OpenUI *Density/Print density: PickOne
