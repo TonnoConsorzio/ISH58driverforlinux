@@ -27,7 +27,7 @@ class ProtocolTests(unittest.TestCase):
         width, height, scaled = module.scale_to_width(width, height, cropped, 8)
         self.assertEqual((width, height, len(scaled)), (8, 4, 4))
 
-    def test_56mm_receipt_page_is_scaled_as_whole_page(self):
+    def test_receipt_page_is_scaled_as_whole_page(self):
         source = bytes([0x80] + [0] * 55) * 100
         width, height, payload = module.prepare_page(448, 100, source, 384, "581")
         self.assertEqual((width, height), (384, 86))

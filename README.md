@@ -34,12 +34,12 @@ then configures the PPD, filter, queue and udev rules.
 lp -d ish582-581 document.pdf
 ```
 
-The 581 printer uses 56 mm media with approximately 48 mm printable width.
+The 581 printer uses 58 mm media with approximately 48 mm printable width.
 The 801 printer uses 80 mm media with approximately 72 mm printable width.
 The filter rasterizes at 203 dpi, keeps receipt-sized PDF geometry, scales the
 full page to printhead width, and trims only trailing white rows. Oversized
 A4/Letter pages use ink cropping before scaling. This prevents Firefox from
-cutting a 56 mm x 250 mm receipt while keeping receipt height variable.
+cutting a 58 mm x 250 mm receipt while keeping receipt height variable.
 OnlyOffice PDFs, images printed through Firefox, Chrome and Firefox output are
 supported. Long receipts are sent in USB blocks to reduce printer lockups.
 

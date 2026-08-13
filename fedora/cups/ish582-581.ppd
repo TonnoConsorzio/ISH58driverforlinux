@@ -17,11 +17,11 @@
 *cupsSNMPSupplies: False
 *cupsFilter: "application/vnd.cups-pdf 0 ish582-581-filter"
 *VariablePaperSize: True
-*MinSize: 158.7 28.4
-*MaxSize: 158.7 11621.8
-*MaxMediaWidth: 158.7
+*MinSize: 164.4 28.4
+*MaxSize: 164.4 11621.8
+*MaxMediaWidth: 164.4
 *MaxMediaHeight: 11621.8
-*ParamCustomPageSize Width: 1 points 158.7 158.7
+*ParamCustomPageSize Width: 1 points 164.4 164.4
 *ParamCustomPageSize Height: 2 points 28.4 11621.8
 *ParamCustomPageSize WidthOffset: 3 points 0 0
 *ParamCustomPageSize HeightOffset: 4 points 0 0
@@ -35,17 +35,17 @@
 *OpenUI *PageSize/Page Size: PickOne
 *OrderDependency: 10 AnySetup *PageSize
 *DefaultPageSize: Roll58
-*PageSize Roll58/56 mm media, 48 mm printable: "<</PageSize[158.7 708.7]>>setpagedevice"
+*PageSize Roll58/58 mm media, 48 mm printable: "<</PageSize[164.4 708.7]>>setpagedevice"
 *PageSize Custom/Custom size: ""
 *CloseUI: *PageSize
 *DefaultPageRegion: Roll58
-*PageRegion Roll58/56 mm media, 48 mm printable: "<</PageSize[158.7 708.7]>>setpagedevice"
+*PageRegion Roll58/58 mm media, 48 mm printable: "<</PageSize[164.4 708.7]>>setpagedevice"
 *PageRegion Custom/Custom size: ""
-*ImageableArea Roll58/56 mm media, 48 mm printable: "0 0 158.7 708.7"
-*ImageableArea Custom/Custom size: "0 0 158.7 708.7"
+*ImageableArea Roll58/58 mm media, 48 mm printable: "0 0 164.4 708.7"
+*ImageableArea Custom/Custom size: "0 0 164.4 708.7"
 *DefaultImageableArea: Roll58
-*PaperDimension Roll58/56 mm media, 48 mm printable: "158.7 708.7"
-*PaperDimension Custom/Custom size: "158.7 708.7"
+*PaperDimension Roll58/58 mm media, 48 mm printable: "164.4 708.7"
+*PaperDimension Custom/Custom size: "164.4 708.7"
 *DefaultPaperDimension: Roll58
 *HWMargins: 0 0 0 0
 *OpenUI *Density/Print density: PickOne

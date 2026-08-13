@@ -14,7 +14,7 @@ from pathlib import Path
 class FilterError(RuntimeError):
     pass
 
-ROLL_WIDTH_MM = {"581": 56, "801": 80}
+ROLL_WIDTH_MM = {"581": 58, "801": 80}
 
 def model_from_program() -> tuple[int, str]:
     configured = os.environ.get("ISH582_MODEL", "")

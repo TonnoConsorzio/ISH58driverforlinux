@@ -6,7 +6,7 @@ the printer protocol is visible in those GPD definitions:
 
 - ESC/POS GS `v 0` raster command (`1d 76 30 00`)
 - 203 dpi
-- 581P/581PW: 56 mm media, 384 printable dots, approximately 48 mm
+- 581P/581PW: 58 mm media, 384 printable dots, approximately 48 mm
 - 801P/801PW: 80 mm media, 576 printable dots, approximately 72 mm
 - USB, RAW network and serial transports
 
