@@ -1,0 +1,10 @@
+graphify-out/
+System Volume Information/
+__pycache__/
+*.pyc
+*.bin
+*.log
+*.pdf
+*.mp4
+*.exe
+*.dll

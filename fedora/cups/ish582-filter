@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""CUPS PDF -> ESC/POS raster filter for the iSH582 printer family."""
+from __future__ import annotations
+import glob
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+class FilterError(RuntimeError):
+    pass
+
+def model_from_program() -> tuple[int, str]:
+    configured = os.environ.get("ISH582_MODEL", "")
+    if configured == "801":
+        return 576, "801"
+    if configured == "581":
+        return 384, "581"
+    name = Path(sys.argv[0]).name.lower()
+    return (576, "801") if "801" in name else (384, "581")
+
+def option_value(options: str, key: str, default: str | None = None) -> str | None:
+    match = re.search(r"(?:^|\s)" + re.escape(key) + r"(?:=([^\s]+))?", options, re.IGNORECASE)
+    return match.group(1) if match and match.group(1) is not None else default
+
+def read_pbm(path: str) -> tuple[int, int, bytes]:
+    with open(path, "rb") as stream:
+        if stream.read(2) != b"P4":
+            raise FilterError(f"not a binary PBM: {path}")
+        tokens: list[bytes] = []
+        while len(tokens) < 2:
+            line = stream.readline()
+            if not line:
+                raise FilterError("invalid PBM header")
+            tokens.extend(line.split(b"#", 1)[0].split())
+        width, height = int(tokens[0]), int(tokens[1])
+        row_bytes = (width + 7) // 8
+        payload = stream.read(row_bytes * height)
+        if len(payload) != row_bytes * height:
+            raise FilterError("truncated PBM image")
+        return width, height, payload
+
+def crop_to_ink(width: int, height: int, payload: bytes) -> tuple[int, int, bytes]:
+    """Crop PDF page whitespace so A4/Letter canvas cannot shrink a receipt."""
+    row_bytes = (width + 7) // 8
+    min_x, min_y, max_x, max_y = width, height, -1, -1
+    for y in range(height):
+        row = payload[y * row_bytes : (y + 1) * row_bytes]
+        for x in range(width):
+            if row[x // 8] & (0x80 >> (x & 7)):
+                min_x, max_x = min(min_x, x), max(max_x, x)
+                min_y, max_y = min(min_y, y), max(max_y, y)
+    if max_x < 0:
+        return 1, 1, b"\x00"
+    cropped_width, cropped_height = max_x - min_x + 1, max_y - min_y + 1
+    cropped_bytes = (cropped_width + 7) // 8
+    out = bytearray(cropped_bytes * cropped_height)
+    for dy in range(cropped_height):
+        source_row = payload[(min_y + dy) * row_bytes : (min_y + dy + 1) * row_bytes]
+        dest_row = memoryview(out)[dy * cropped_bytes : (dy + 1) * cropped_bytes]
+        for dx in range(cropped_width):
+            if source_row[(min_x + dx) // 8] & (0x80 >> ((min_x + dx) & 7)):
+                dest_row[dx // 8] |= 0x80 >> (dx & 7)
+    return cropped_width, cropped_height, bytes(out)
+
+def scale_to_width(width: int, height: int, payload: bytes, target: int) -> tuple[int, int, bytes]:
+    """Nearest-neighbour monochrome scale to native printer width."""
+    if width == target:
+        return width, height, payload
+    source_bytes = (width + 7) // 8
+    target_height = max(1, round(height * target / width))
+    target_bytes = (target + 7) // 8
+    out = bytearray(target_bytes * target_height)
+    for dy in range(target_height):
+        sy = min(height - 1, dy * height // target_height)
+        source_row = payload[sy * source_bytes : (sy + 1) * source_bytes]
+        dest_row = memoryview(out)[dy * target_bytes : (dy + 1) * target_bytes]
+        for dx in range(target):
+            sx = min(width - 1, dx * width // target)
+            if source_row[sx // 8] & (0x80 >> (sx & 7)):
+                dest_row[dx // 8] |= 0x80 >> (dx & 7)
+    return target, target_height, bytes(out)
+
+def trim_white_rows(height: int, row_bytes: int, payload: bytes) -> tuple[int, bytes]:
+    for y in range(height - 1, -1, -1):
+        if any(payload[y * row_bytes : (y + 1) * row_bytes]):
+            return y + 1, payload[: (y + 1) * row_bytes]
+    return 1, bytes(row_bytes)
+
+def gs_v0_blocks(row_bytes: int, height: int, payload: bytes):
+    """Yield complete GS-v0 blocks, allowing CUPS USB streaming."""
+    for first in range(0, height, 24):
+        block_height = min(24, height - first)
+        block = payload[first * row_bytes : (first + block_height) * row_bytes]
+        block += bytes(row_bytes * (24 - block_height))
+        yield b"\x1d\x76\x30\x00" + bytes((row_bytes & 255, (row_bytes >> 8) & 255, 24, 0)) + block
+
+def gs_v0(row_bytes: int, height: int, payload: bytes) -> bytes:
+    return b"".join(gs_v0_blocks(row_bytes, height, payload))
+
+def end_page(model: str) -> bytes:
+    return b"\x1d\x53" if model == "801" else b""
+
+def end_job(model: str) -> bytes:
+    return b"\x1d\x54" if model == "801" else b"\x1b\x64\x05\x1b\x72\x1b\x40"
+
+def quality_command(options: str) -> bytes:
+    density = option_value(options, "density")
+    if not density or not density.isdigit() or int(density) <= 0:
+        return b""
+    return b"\x1b\x61\x01\x1c\x70" + bytes((min(9, int(density)), 0))
+
+def cups_arguments(argv: list[str]) -> tuple[str, str]:
+    if len(argv) < 6:
+        raise FilterError("CUPS arguments missing")
+    return (argv[6] if len(argv) >= 7 else "-", argv[5])
+
+def iter_render_pdf(pdf_path: str, target_width: int, model: str, options: str):
+    with tempfile.TemporaryDirectory(prefix="ish582-") as temp_dir:
+        prefix = os.path.join(temp_dir, "page")
+        command = [shutil.which("pdftoppm") or "/usr/bin/pdftoppm", "-r", "203", "-mono", pdf_path, prefix]
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+        if result.returncode:
+            raise FilterError(result.stderr.decode("utf-8", "replace").strip() or "pdftoppm failed")
+        pages = sorted(glob.glob(prefix + "-*.pbm"))
+        if not pages:
+            raise FilterError("pdftoppm produced no pages")
+        yield b"\x1b\x40"
+        quality = quality_command(options)
+        if quality:
+            yield quality
+        for page in pages:
+            width, height, payload = read_pbm(page)
+            width, height, payload = crop_to_ink(width, height, payload)
+            width, height, payload = scale_to_width(width, height, payload, target_width)
+            row_bytes = (width + 7) // 8
+            height, payload = trim_white_rows(height, row_bytes, payload)
+            yield from gs_v0_blocks(row_bytes, height, payload)
+            page_end = end_page(model)
+            if page_end:
+                yield page_end
+        yield end_job(model)
+
+def render_pdf(pdf_path: str, target_width: int, model: str, options: str) -> bytes:
+    return b"".join(iter_render_pdf(pdf_path, target_width, model, options))
+
+def main() -> int:
+    try:
+        input_path, options = cups_arguments(sys.argv)
+    except FilterError as error:
+        print(f"ERROR: ish582-filter: {error}", file=sys.stderr)
+        return 1
+    temporary_input: str | None = None
+    try:
+        if input_path == "-":
+            fd, temporary_input = tempfile.mkstemp(prefix="ish582-job-", suffix=".pdf")
+            with os.fdopen(fd, "wb") as output:
+                shutil.copyfileobj(sys.stdin.buffer, output)
+            input_path = temporary_input
+        target_width, model = model_from_program()
+        delay = max(0.0, min(0.05, float(os.environ.get("ISH582_INTERBLOCK_DELAY_MS", "2")) / 1000.0))
+        for chunk in iter_render_pdf(input_path, target_width, model, options):
+            sys.stdout.buffer.write(chunk)
+            sys.stdout.buffer.flush()
+            if chunk.startswith(b"\x1d\x76\x30\x00") and delay:
+                time.sleep(delay)
+        return 0
+    except (OSError, ValueError, FilterError, subprocess.SubprocessError) as error:
+        print(f"ERROR: ish582-filter: {error}", file=sys.stderr)
+        return 1
+    finally:
+        if temporary_input:
+            try:
+                os.unlink(temporary_input)
+            except OSError:
+                pass
+
+if __name__ == "__main__":
+    raise SystemExit(main())

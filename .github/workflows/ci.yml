@@ -1,0 +1,40 @@
+name: Linux driver CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y cups cups-filters poppler-utils
+      - run: sh -n install.sh fedora/install-fedora.sh fedora/cups/ish582-581-filter fedora/cups/ish582-801-filter
+      - run: python3 -m unittest discover -s fedora/tests -v
+      - run: cupstestppd -W all fedora/cups/ish582-581.ppd fedora/cups/ish582-801.ppd
+
+  distro-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: debian:stable
+            install: apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y python3 cups cups-filters poppler-utils
+          - image: fedora:latest
+            install: dnf install -y python3 cups cups-filters poppler-utils
+          - image: archlinux:base-devel
+            install: pacman -Sy --noconfirm python cups cups-filters poppler
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test ${{ matrix.image }}
+        run: |
+          docker run --rm -v "$PWD:/src:ro" "${{ matrix.image }}" bash -lc '
+            set -eu
+            ${{ matrix.install }}
+            cd /src
+            sh -n install.sh fedora/install-fedora.sh fedora/cups/ish582-581-filter fedora/cups/ish582-801-filter
+            python3 -m unittest discover -s fedora/tests -v
+            cupstestppd -W all fedora/cups/ish582-581.ppd fedora/cups/ish582-801.ppd
+          '

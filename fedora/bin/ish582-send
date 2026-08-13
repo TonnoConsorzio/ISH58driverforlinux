@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""Send a small ESC/POS test job without CUPS."""
+from __future__ import annotations
+import argparse
+import socket
+import sys
+
+def payload(text: str) -> bytes:
+    out = bytearray(b"\x1b\x40")
+    for line in (text.splitlines() or [""]):
+        out += line.encode("cp437", "replace") + b"\r\n"
+    return bytes(out) + b"\r\n\x1b\x64\x05\x1b\x72\x1b\x40"
+
+def send(target: str, data: bytes, timeout: float) -> None:
+    if target.startswith("tcp://"):
+        host_port = target[6:]
+        host, separator, port = host_port.rpartition(":")
+        if not separator:
+            port = "9100"
+        with socket.create_connection((host, int(port)), timeout=timeout) as connection:
+            connection.sendall(data)
+        return
+    path = target[6:] if target.startswith("usb://") else target
+    with open(path, "wb", buffering=0) as device:
+        device.write(data)
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Send a test receipt to iSH582/581P/801P")
+    parser.add_argument("target", help="tcp://HOST[:PORT], /dev/usb/lp0, or /dev/ttyUSB0")
+    parser.add_argument("--model", choices=("581", "801"), default="581")
+    parser.add_argument("--text", default="iSH582 Fedora test\nStampa OK")
+    parser.add_argument("--timeout", type=float, default=5.0)
+    args = parser.parse_args()
+    try:
+        send(args.target, payload(args.text), args.timeout)
+    except (OSError, ValueError) as error:
+        print(f"ish582-send: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())

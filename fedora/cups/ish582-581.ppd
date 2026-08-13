@@ -1,0 +1,64 @@
+*PPD-Adobe: "4.3"
+*PSVersion: "(3010.000) 550"
+*FormatVersion: "4.3"
+*FileVersion: "2.0"
+*LanguageVersion: English
+*LanguageEncoding: ISOLatin1
+*PCFileName: "ISH581.PPD"
+*Manufacturer: "TEROW / Gprinter"
+*Product: "(iSH582 581P)"
+*ModelName: "iSH582 581P / 581PW"
+*ShortNickName: "iSH582 581P"
+*NickName: "iSH582 581P / 581PW thermal printer"
+*ColorDevice: False
+*DefaultColorSpace: Gray
+*LanguageLevel: "3"
+*cupsVersion: 1.4
+*cupsSNMPSupplies: False
+*cupsFilter: "application/vnd.cups-pdf 0 ish582-581-filter"
+*VariablePaperSize: True
+*MinSize: 136.1 28.4
+*MaxSize: 136.1 11621.8
+*MaxMediaWidth: 136.1
+*MaxMediaHeight: 11621.8
+*ParamCustomPageSize Width: 1 points 136.1 136.1
+*ParamCustomPageSize Height: 2 points 28.4 11621.8
+*ParamCustomPageSize WidthOffset: 3 points 0 0
+*ParamCustomPageSize HeightOffset: 4 points 0 0
+*ParamCustomPageSize Orientation: 5 int 0 0
+*CustomPageSize True: "pop pop pop << /PageSize[5 -2 roll]/ImagingBBox null>>setpagedevice"
+*OpenUI *Resolution/Resolution: PickOne
+*OrderDependency: 15 AnySetup *Resolution
+*DefaultResolution: 203dpi
+*Resolution 203dpi/203 dpi: "<</HWResolution[203 203]>>setpagedevice"
+*CloseUI: *Resolution
+*OpenUI *PageSize/Page Size: PickOne
+*OrderDependency: 10 AnySetup *PageSize
+*DefaultPageSize: Roll58
+*PageSize Roll58/58 mm roll, 48 mm printable: "<</PageSize[136.1 226.8]>>setpagedevice"
+*PageSize Custom/Custom size: ""
+*CloseUI: *PageSize
+*DefaultPageRegion: Roll58
+*PageRegion Roll58/58 mm roll, 48 mm printable: "<</PageSize[136.1 226.8]>>setpagedevice"
+*PageRegion Custom/Custom size: ""
+*ImageableArea Roll58/58 mm roll, 48 mm printable: "0 0 136.1 226.8"
+*ImageableArea Custom/Custom size: "0 0 136.1 226.8"
+*DefaultImageableArea: Roll58
+*PaperDimension Roll58/58 mm roll, 48 mm printable: "136.1 226.8"
+*PaperDimension Custom/Custom size: "136.1 226.8"
+*DefaultPaperDimension: Roll58
+*HWMargins: 0 0 0 0
+*OpenUI *Density/Print density: PickOne
+*OrderDependency: 20 AnySetup *Density
+*DefaultDensity: 0
+*Density 0/Default: ""
+*Density 1/1: ""
+*Density 2/2: ""
+*Density 3/3: ""
+*Density 4/4: ""
+*Density 5/5: ""
+*Density 6/6: ""
+*Density 7/7: ""
+*Density 8/8: ""
+*Density 9/9: ""
+*CloseUI: *Density

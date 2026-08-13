@@ -1,0 +1,3 @@
+#!/bin/sh
+export ISH582_MODEL=581
+exec /usr/lib/cups/filter/ish582-filter "$@"
