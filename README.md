@@ -1,10 +1,10 @@
 # ISH58driverforlinux
 
-Driver Linux/CUPS per stampanti termiche iSH582 / Gprinter 581P, 581PW, 801P
-e 801PW. Protocollo raster ESC/POS ricostruito dai parametri del driver
-Windows: 203 dpi, GS `v 0`, 384 punti per 581 e 576 punti per 801.
+Linux/CUPS driver for iSH582 / Gprinter 581P, 581PW, 801P and 801PW thermal
+printers. Raster protocol reconstructed from the Windows driver parameters:
+203 dpi, ESC/POS GS `v 0`, 384 dots for model 581 and 576 dots for model 801.
 
-## Installazione rapida
+## Quick installation
 
 ```bash
 git clone https://github.com/TonnoConsorzio/ISH58driverforlinux.git
@@ -12,37 +12,37 @@ cd ISH58driverforlinux
 sudo sh ./install.sh 581 usb
 ```
 
-Per stampante 80 mm:
+For the 80 mm model:
 
 ```bash
 sudo sh ./install.sh 801 usb
 ```
 
-Per rete RAW:
+For a RAW network printer:
 
 ```bash
 sudo sh ./install.sh 581 socket://192.168.1.200:9100
 ```
 
-Installer rileva automaticamente USB tramite `lpinfo`, installa dipendenze
-CUPS/Poppler per Debian/Ubuntu, Fedora/RHEL, Arch, openSUSE e Alpine, configura
-PPD, filtro, coda e regole udev.
+The installer automatically detects USB through `lpinfo`, installs CUPS and
+Poppler dependencies on Debian/Ubuntu, Fedora/RHEL, Arch, openSUSE and Alpine,
+then configures the PPD, filter, queue and udev rules.
 
-## Stampa PDF
+## Printing PDFs
 
 ```bash
-lp -d ish582-581 documento.pdf
+lp -d ish582-581 document.pdf
 ```
 
-Il filtro rasterizza a 203 dpi, ritaglia margini bianchi del canvas PDF e scala
-il contenuto alla larghezza nativa. Gestisce PDF A4/Letter, PDF OnlyOffice,
-Chrome e Firefox. Ricevute lunghe vengono inviate a blocchi USB per evitare
-il blocco della stampante.
+The filter rasterizes at 203 dpi, crops white margins from the PDF canvas and
+scales the content to the printer's native width. It handles A4/Letter PDFs,
+OnlyOffice PDFs, Chrome and Firefox output. Long receipts are sent in USB
+blocks to reduce printer lockups.
 
-La stampa silenziosa da una pagina web resta vincolata alle policy del browser;
-il driver espone normalmente la coda CUPS `ish582-581`.
+Silent printing from a normal web page remains controlled by browser security
+policies; the driver exposes the standard CUPS queue `ish582-581`.
 
-## Sviluppo
+## Development
 
 ```bash
 python3 -m unittest discover -s fedora/tests -v
@@ -50,4 +50,4 @@ sh -n install.sh fedora/install-fedora.sh fedora/cups/ish582-581-filter fedora/c
 cupstestppd -W all fedora/cups/ish582-581.ppd fedora/cups/ish582-801.ppd
 ```
 
-Nessun modulo kernel richiesto: USB è gestito dal backend standard CUPS.
+No kernel module is required: USB is handled by the standard CUPS backend.

@@ -2,7 +2,7 @@
 set -eu
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo "Esegui come root: sudo $0 [581|801] [URI]" >&2
+    echo "Run as root: sudo $0 [581|801] [URI]" >&2
     exit 1
 fi
 
@@ -10,7 +10,7 @@ MODEL=${1:-581}
 URI=${2:-}
 case "$MODEL" in
     581|801) ;;
-    *) echo "Modello non valido: usa 581 oppure 801" >&2; exit 2 ;;
+    *) echo "Invalid model: use 581 or 801" >&2; exit 2 ;;
 esac
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -29,8 +29,8 @@ if [ -n "$URI" ]; then
     lpadmin -p ish582-$MODEL -E -v "$URI" -P /usr/share/cups/model/ish582-$MODEL.ppd
     cupsenable ish582-$MODEL
     cupsaccept ish582-$MODEL
-    echo "Coda ish582-$MODEL configurata su $URI"
+    echo "Queue ish582-$MODEL configured at $URI"
 else
-    echo "Driver installato. Configura la coda, ad esempio:"
+    echo "Driver installed. Configure the queue, for example:"
     echo "  sudo lpadmin -p ish582-$MODEL -E -v socket://192.168.201.200:9100 -P /usr/share/cups/model/ish582-$MODEL.ppd"
 fi

@@ -28,7 +28,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Send a test receipt to iSH582/581P/801P")
     parser.add_argument("target", help="tcp://HOST[:PORT], /dev/usb/lp0, or /dev/ttyUSB0")
     parser.add_argument("--model", choices=("581", "801"), default="581")
-    parser.add_argument("--text", default="iSH582 Fedora test\nStampa OK")
+    parser.add_argument("--text", default="iSH582 Linux test\nPrint OK")
     parser.add_argument("--timeout", type=float, default=5.0)
     args = parser.parse_args()
     try:

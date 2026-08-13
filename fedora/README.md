@@ -1,45 +1,62 @@
-# Driver Fedora per iSH582 / 581P / 581PW / 801P
+# iSH582 Linux/CUPS driver
 
-Questa è la versione Linux/CUPS ricostruita dai file Windows forniti. Il
-driver Windows usa Unidrv e i file GPD, ma il protocollo è visibile nei GPD:
+This directory contains the Linux/CUPS implementation for iSH582 / 581P,
+581PW and 801P thermal printers. The Windows package used Unidrv and GPD files;
+the printer protocol is visible in those GPD definitions:
 
-- raster ESC/POS GS v 0 (1d 76 30 00);
-- risoluzione 203 dpi;
-- 581P/581PW: 384 punti, tipicamente rotolo da 58 mm;
-- 801P: 576 punti, tipicamente rotolo da 80 mm;
-- IP predefinito del tool Windows: 192.168.201.200;
-- il pacchetto indica USB, rete e seriale.
+- ESC/POS GS `v 0` raster command (`1d 76 30 00`)
+- 203 dpi
+- 581P/581PW: 384 printable dots, approximately 48 mm
+- 801P: 576 printable dots, approximately 72 mm
+- USB, RAW network and serial transports
 
-Il filtro converte il PDF CUPS in PBM monocromatico a 203 dpi e invia gli
-stessi blocchi raster ESC/POS usati dal GPD Windows. Non usa DLL Windows.
+The filter converts CUPS PDF input to monochrome PBM at 203 dpi, crops page
+whitespace, scales content to native printer width and emits the same raster
+blocks used by the GPD protocol. It does not use Windows DLLs.
 
-## Installazione di rete
+## Recommended installation
 
-    cd fedora
-    sudo sh ./install-fedora.sh 581 socket://192.168.201.200:9100
-    sudo sh ./install-fedora.sh 801 socket://192.168.201.200:9100
-    lp -d ish582-581 /percorso/documento.pdf
+From repository root:
 
-La porta TCP 9100 è la convenzione RAW delle stampanti ESC/POS; nel pacchetto
-Windows non è memorizzata esplicitamente. Se fallisce, controllare IP e porta.
+```bash
+sudo sh ./install.sh 581 usb
+```
 
-## USB o seriale
+The installer supports Debian/Ubuntu, Fedora/RHEL, Arch, openSUSE and Alpine.
+It installs dependencies, detects the USB URI, installs the PPD and configures
+the CUPS queue.
 
-    lpinfo -v | grep -Ei 'usb|serial|ish|gprinter|terow'
-    sudo sh ./install-fedora.sh 581 'usb://...'
+## Network installation
 
-Test diretto senza CUPS:
+```bash
+sudo sh ./install.sh 581 socket://PRINTER_IP:9100
+sudo sh ./install.sh 801 socket://PRINTER_IP:9100
+lp -d ish582-581 document.pdf
+```
 
-    sudo sh ./install-fedora.sh 581
-    ish582-send tcp://192.168.201.200:9100 --model 581
-    ish582-send /dev/usb/lp0 --model 581
+TCP port 9100 is the usual RAW transport for ESC/POS printers. Verify the
+printer IP and port if the connection fails.
 
-La concentrazione/densità è esposta come density=0..9, in linea con i
-comandi presenti nel GPD. Dopo aver modificato la concentrazione occorre
-riavviare la stampante, come indicato nell'immagine di supporto.
+## USB or serial diagnostics
 
-Il pacchetto Windows non contiene sorgenti né un VID/PID USB esplicito: l'URI
-USB va quindi rilevato sul computer Fedora. La verifica finale richiede la
-stampante collegata.
+```bash
+lpinfo -v | grep -Ei 'usb|serial|ish|gprinter|terow'
+sudo sh ./fedora/install-fedora.sh 581 'usb://REAL_URI'
+```
 
-    python3 -m unittest discover -s fedora/tests
+Direct transport testing:
+
+```bash
+ish582-send tcp://PRINTER_IP:9100 --model 581
+ish582-send /dev/usb/lp0 --model 581
+```
+
+Print density is exposed as `density=0..9`, matching the GPD commands. Restart
+the printer after changing density settings.
+
+## Tests
+
+```bash
+python3 -m unittest discover -s fedora/tests -v
+cupstestppd -W all fedora/cups/ish582-581.ppd fedora/cups/ish582-801.ppd
+```

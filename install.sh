@@ -7,7 +7,7 @@ URI=${2:-usb}
 
 case "$MODEL" in
     581|801) ;;
-    *) echo "Uso: sudo sh $0 [581|801] [usb|CUPS_URI]" >&2; exit 2 ;;
+    *) echo "Usage: sudo sh $0 [581|801] [usb|CUPS_URI]" >&2; exit 2 ;;
 esac
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -27,13 +27,13 @@ if [ "${ISH582_NO_DEPS:-0}" != 1 ]; then
     elif command -v apk >/dev/null 2>&1; then
         apk add cups cups-filters poppler-utils
     else
-        echo "Distribuzione non riconosciuta: installare CUPS, cups-filters e pdftoppm." >&2
+        echo "Unsupported distribution: install CUPS, cups-filters and pdftoppm manually." >&2
     fi
 fi
 
 for command in lpadmin lpinfo cupsenable cupsaccept pdftoppm; do
     command -v "$command" >/dev/null 2>&1 || {
-        echo "Comando mancante: $command" >&2
+        echo "Missing command: $command" >&2
         exit 3
     }
 done
@@ -64,10 +64,10 @@ fi
 case "$URI" in
     usb)
         URI=$(lpinfo -v | awk '$1 == "direct" && $2 ~ /^usb:\/\// { print $2; exit }')
-        [ -n "$URI" ] || { echo "Nessuna stampante USB trovata: usare lpinfo -v." >&2; exit 4; }
+        [ -n "$URI" ] || { echo "No USB printer found. Run lpinfo -v." >&2; exit 4; }
         ;;
     *URI_COMPLETO*|*URI_RILEVATO*|*NUOVO_IP*)
-        echo "URI segnaposto non valido." >&2
+        echo "Invalid placeholder URI." >&2
         exit 2
         ;;
 esac
@@ -80,6 +80,6 @@ lpadmin -p "ish582-$MODEL" -E -v "$URI" -P "$MODEL_DIR/ish582-$MODEL.ppd" \
 cupsenable "ish582-$MODEL"
 cupsaccept "ish582-$MODEL"
 
-echo "Installato ish582-$MODEL"
+echo "Installed ish582-$MODEL"
 echo "URI: $URI"
-echo "Stampa: lp -d ish582-$MODEL documento.pdf"
+echo "Print: lp -d ish582-$MODEL document.pdf"
