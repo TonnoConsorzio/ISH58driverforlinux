@@ -132,11 +132,11 @@ def end_job(model: str) -> bytes:
 
 def darkness_threshold(options: str) -> int:
     """Map CUPS Darkness 0..9 to a conservative grayscale threshold."""
-    value = option_value(options, "darkness", "3")
+    value = option_value(options, "darkness", "5")
     try:
         level = max(0, min(9, int(value or "3")))
     except ValueError:
-        level = 3
+        level = 5
     return 100 + level * 15
 
 def cups_arguments(argv: list[str]) -> tuple[str, str]:

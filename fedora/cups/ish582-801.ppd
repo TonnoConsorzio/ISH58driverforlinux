@@ -50,7 +50,7 @@
 *HWMargins: 0 0 0 0
 *OpenUI *Darkness/Ink darkness: PickOne
 *OrderDependency: 20 AnySetup *Darkness
-*DefaultDarkness: 3
+*DefaultDarkness: 5
 *Darkness 0/Lightest: ""
 *Darkness 1/Very light: ""
 *Darkness 2/Light: ""

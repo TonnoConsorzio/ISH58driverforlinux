@@ -45,7 +45,7 @@ supported. Long receipts are sent as paced 256-byte USB pieces to avoid the
 small input-buffer limit present in some iSH582 firmware versions. Override
 with `ISH582_USB_CHUNK_BYTES` and `ISH582_INTERBLOCK_DELAY_MS` when diagnosing
 unusual hardware. CUPS option `Darkness=0..9` controls raster threshold;
-level 3 is default and reduces gray antialiasing that can look blurred on
+level 5 is default and reduces gray antialiasing that can look blurred on
 thermal paper.
 
 Silent printing from a normal web page remains controlled by browser security

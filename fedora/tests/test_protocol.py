@@ -37,7 +37,7 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(module.darkness_threshold("darkness=0"), 100)
         self.assertEqual(module.darkness_threshold("darkness=3"), 145)
         self.assertEqual(module.darkness_threshold("darkness=9"), 235)
-        self.assertEqual(module.darkness_threshold("darkness=invalid"), 145)
+        self.assertEqual(module.darkness_threshold("darkness=invalid"), 175)
 
     def test_gray_to_pbm_thresholds_antialiasing(self):
         width, height, payload = module.gray_to_pbm(8, 1, bytes([0, 80, 145, 146, 200, 255, 1, 144]), 145)
