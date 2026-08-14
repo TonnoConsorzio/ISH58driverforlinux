@@ -51,7 +51,9 @@ install -m 0755 "$ROOT/fedora/cups/ish582-filter" "$FILTER_DIR/ish582-filter"
 install -m 0755 "$ROOT/fedora/cups/ish582-$MODEL-filter" "$FILTER_DIR/ish582-$MODEL-filter"
 install -m 0644 "$ROOT/fedora/cups/ish582-$MODEL.ppd" "$MODEL_DIR/ish582-$MODEL.ppd"
 
-if [ -d /etc/udev/rules.d ]; then
+# The standard CUPS USB backend needs no custom kernel or udev rule.
+# Install an optional rule only when a distribution-specific rule is shipped.
+if [ -d /etc/udev/rules.d ] && [ -f "$ROOT/fedora/udev/70-ish582.rules" ]; then
     install -m 0644 "$ROOT/fedora/udev/70-ish582.rules" /etc/udev/rules.d/70-ish582.rules
     udevadm control --reload-rules 2>/dev/null || true
 fi
