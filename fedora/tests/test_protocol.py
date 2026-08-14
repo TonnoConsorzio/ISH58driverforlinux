@@ -33,9 +33,16 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual((width, height), (384, 86))
         self.assertEqual(len(payload), 48 * 86)
 
-    def test_quality_command_matches_gpd(self):
-        self.assertEqual(module.quality_command("density=0"), b"")
-        self.assertEqual(module.quality_command("density=5"), bytes.fromhex("1b61011c700500"))
+    def test_darkness_threshold_is_conservative_and_bounded(self):
+        self.assertEqual(module.darkness_threshold("darkness=0"), 100)
+        self.assertEqual(module.darkness_threshold("darkness=3"), 145)
+        self.assertEqual(module.darkness_threshold("darkness=9"), 235)
+        self.assertEqual(module.darkness_threshold("darkness=invalid"), 145)
+
+    def test_gray_to_pbm_thresholds_antialiasing(self):
+        width, height, payload = module.gray_to_pbm(8, 1, bytes([0, 80, 145, 146, 200, 255, 1, 144]), 145)
+        self.assertEqual((width, height), (8, 1))
+        self.assertEqual(payload, bytes([0xE3]))
 
     def test_stream_pieces_preserve_protocol_byte_stream(self):
         data = bytes(range(256)) * 5

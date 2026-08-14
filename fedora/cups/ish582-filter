@@ -29,22 +29,35 @@ def option_value(options: str, key: str, default: str | None = None) -> str | No
     match = re.search(r"(?:^|\s)" + re.escape(key) + r"(?:=([^\s]+))?", options, re.IGNORECASE)
     return match.group(1) if match and match.group(1) is not None else default
 
-def read_pbm(path: str) -> tuple[int, int, bytes]:
+def read_pgm(path: str) -> tuple[int, int, bytes]:
     with open(path, "rb") as stream:
-        if stream.read(2) != b"P4":
-            raise FilterError(f"not a binary PBM: {path}")
+        if stream.read(2) != b"P5":
+            raise FilterError(f"not a binary PGM: {path}")
         tokens: list[bytes] = []
-        while len(tokens) < 2:
+        while len(tokens) < 3:
             line = stream.readline()
             if not line:
-                raise FilterError("invalid PBM header")
+                raise FilterError("invalid PGM header")
             tokens.extend(line.split(b"#", 1)[0].split())
-        width, height = int(tokens[0]), int(tokens[1])
-        row_bytes = (width + 7) // 8
-        payload = stream.read(row_bytes * height)
-        if len(payload) != row_bytes * height:
-            raise FilterError("truncated PBM image")
+        width, height, max_value = map(int, tokens[:3])
+        if max_value != 255:
+            raise FilterError(f"unsupported PGM max value: {max_value}")
+        payload = stream.read(width * height)
+        if len(payload) != width * height:
+            raise FilterError("truncated PGM image")
         return width, height, payload
+
+def gray_to_pbm(width: int, height: int, gray: bytes, threshold: int) -> tuple[int, int, bytes]:
+    """Convert antialiased PDF gray pixels to crisp thermal 1-bit pixels."""
+    row_bytes = (width + 7) // 8
+    output = bytearray(row_bytes * height)
+    for y in range(height):
+        source = gray[y * width : (y + 1) * width]
+        target = memoryview(output)[y * row_bytes : (y + 1) * row_bytes]
+        for x, value in enumerate(source):
+            if value <= threshold:
+                target[x // 8] |= 0x80 >> (x & 7)
+    return width, height, bytes(output)
 
 def crop_to_ink(width: int, height: int, payload: bytes) -> tuple[int, int, bytes]:
     """Crop PDF page whitespace so A4/Letter canvas cannot shrink a receipt."""
@@ -117,11 +130,14 @@ def end_page(model: str) -> bytes:
 def end_job(model: str) -> bytes:
     return b"\x1d\x54" if model == "801" else b"\x1b\x64\x05\x1b\x72\x1b\x40"
 
-def quality_command(options: str) -> bytes:
-    density = option_value(options, "density")
-    if not density or not density.isdigit() or int(density) <= 0:
-        return b""
-    return b"\x1b\x61\x01\x1c\x70" + bytes((min(9, int(density)), 0))
+def darkness_threshold(options: str) -> int:
+    """Map CUPS Darkness 0..9 to a conservative grayscale threshold."""
+    value = option_value(options, "darkness", "3")
+    try:
+        level = max(0, min(9, int(value or "3")))
+    except ValueError:
+        level = 3
+    return 100 + level * 15
 
 def cups_arguments(argv: list[str]) -> tuple[str, str]:
     if len(argv) < 6:
@@ -131,19 +147,18 @@ def cups_arguments(argv: list[str]) -> tuple[str, str]:
 def iter_render_pdf(pdf_path: str, target_width: int, model: str, options: str):
     with tempfile.TemporaryDirectory(prefix="ish582-") as temp_dir:
         prefix = os.path.join(temp_dir, "page")
-        command = [shutil.which("pdftoppm") or "/usr/bin/pdftoppm", "-r", "203", "-mono", pdf_path, prefix]
+        command = [shutil.which("pdftoppm") or "/usr/bin/pdftoppm", "-r", "203", "-gray", pdf_path, prefix]
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
         if result.returncode:
             raise FilterError(result.stderr.decode("utf-8", "replace").strip() or "pdftoppm failed")
-        pages = sorted(glob.glob(prefix + "-*.pbm"))
+        pages = sorted(glob.glob(prefix + "-*.pgm"))
         if not pages:
             raise FilterError("pdftoppm produced no pages")
         yield b"\x1b\x40"
-        quality = quality_command(options)
-        if quality:
-            yield quality
+        threshold = darkness_threshold(options)
         for page in pages:
-            width, height, payload = read_pbm(page)
+            width, height, gray = read_pgm(page)
+            width, height, payload = gray_to_pbm(width, height, gray, threshold)
             width, height, payload = prepare_page(width, height, payload, target_width, model)
             row_bytes = (width + 7) // 8
             height, payload = trim_white_rows(height, row_bytes, payload)

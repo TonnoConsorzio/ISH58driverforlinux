@@ -48,17 +48,17 @@
 *PaperDimension Custom/Custom size: "226.8 708.7"
 *DefaultPaperDimension: Roll80
 *HWMargins: 0 0 0 0
-*OpenUI *Density/Print density: PickOne
-*OrderDependency: 20 AnySetup *Density
-*DefaultDensity: 0
-*Density 0/Default: ""
-*Density 1/1: ""
-*Density 2/2: ""
-*Density 3/3: ""
-*Density 4/4: ""
-*Density 5/5: ""
-*Density 6/6: ""
-*Density 7/7: ""
-*Density 8/8: ""
-*Density 9/9: ""
-*CloseUI: *Density
+*OpenUI *Darkness/Ink darkness: PickOne
+*OrderDependency: 20 AnySetup *Darkness
+*DefaultDarkness: 3
+*Darkness 0/Lightest: ""
+*Darkness 1/Very light: ""
+*Darkness 2/Light: ""
+*Darkness 3/Recommended: ""
+*Darkness 4/Medium: ""
+*Darkness 5/Medium dark: ""
+*Darkness 6/Dark: ""
+*Darkness 7/Very dark: ""
+*Darkness 8/Darker: ""
+*Darkness 9/Darkest: ""
+*CloseUI: *Darkness

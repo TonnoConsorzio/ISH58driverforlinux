@@ -54,8 +54,10 @@ ish582-send tcp://PRINTER_IP:9100 --model 581
 ish582-send /dev/usb/lp0 --model 581
 ```
 
-Print density is exposed as `density=0..9`, matching the GPD commands. Restart
-the printer after changing density settings.
+Print quality uses CUPS option `Darkness=0..9`. Level 3 is the default;
+use lower levels for heat-sensitive paper and higher levels only when output is
+too light. The Linux filter does not send undocumented proprietary darkness
+commands to the printer.
 
 ## Tests
 
