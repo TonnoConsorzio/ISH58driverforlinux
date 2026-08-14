@@ -41,7 +41,10 @@ full page to printhead width, and trims only trailing white rows. Oversized
 A4/Letter pages use ink cropping before scaling. This prevents Firefox from
 cutting a 58 mm x 250 mm receipt while keeping receipt height variable.
 OnlyOffice PDFs, images printed through Firefox, Chrome and Firefox output are
-supported. Long receipts are sent in USB blocks to reduce printer lockups.
+supported. Long receipts are sent as paced 256-byte USB pieces to avoid the
+small input-buffer limit present in some iSH582 firmware versions. Override
+with `ISH582_USB_CHUNK_BYTES` and `ISH582_INTERBLOCK_DELAY_MS` when diagnosing
+unusual hardware.
 
 Silent printing from a normal web page remains controlled by browser security
 policies; the driver exposes the standard CUPS queue `ish582-581`.

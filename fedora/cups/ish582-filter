@@ -156,6 +156,11 @@ def iter_render_pdf(pdf_path: str, target_width: int, model: str, options: str):
 def render_pdf(pdf_path: str, target_width: int, model: str, options: str) -> bytes:
     return b"".join(iter_render_pdf(pdf_path, target_width, model, options))
 
+def stream_pieces(chunk: bytes, piece_size: int):
+    """Split output for slow USB printer firmware without changing byte stream."""
+    for start in range(0, len(chunk), piece_size):
+        yield chunk[start : start + piece_size]
+
 def main() -> int:
     try:
         input_path, options = cups_arguments(sys.argv)
@@ -170,12 +175,14 @@ def main() -> int:
                 shutil.copyfileobj(sys.stdin.buffer, output)
             input_path = temporary_input
         target_width, model = model_from_program()
-        delay = max(0.0, min(0.05, float(os.environ.get("ISH582_INTERBLOCK_DELAY_MS", "2")) / 1000.0))
+        delay = max(0.0, min(0.05, float(os.environ.get("ISH582_INTERBLOCK_DELAY_MS", "5")) / 1000.0))
+        piece_size = max(64, min(4096, int(os.environ.get("ISH582_USB_CHUNK_BYTES", "256"))))
         for chunk in iter_render_pdf(input_path, target_width, model, options):
-            sys.stdout.buffer.write(chunk)
-            sys.stdout.buffer.flush()
-            if chunk.startswith(b"\x1d\x76\x30\x00") and delay:
-                time.sleep(delay)
+            for piece in stream_pieces(chunk, piece_size):
+                sys.stdout.buffer.write(piece)
+                sys.stdout.buffer.flush()
+                if delay:
+                    time.sleep(delay)
         return 0
     except (OSError, ValueError, FilterError, subprocess.SubprocessError) as error:
         print(f"ERROR: ish582-filter: {error}", file=sys.stderr)

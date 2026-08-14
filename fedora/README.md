@@ -14,7 +14,8 @@ The filter converts CUPS PDF input to monochrome PBM at 203 dpi. Receipt-sized
 pages are scaled as complete pages to preserve margins and vertical geometry;
 only trailing white rows are removed. Oversized pages are cropped to ink before
 scaling. It emits the same raster blocks used by the GPD protocol and does not
-use Windows DLLs.
+use Windows DLLs. USB output is paced in small pieces because some iSH582
+firmware versions overflow when a long receipt is sent as one fast stream.
 
 ## Recommended installation
 

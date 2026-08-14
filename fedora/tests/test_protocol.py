@@ -37,5 +37,11 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(module.quality_command("density=0"), b"")
         self.assertEqual(module.quality_command("density=5"), bytes.fromhex("1b61011c700500"))
 
+    def test_stream_pieces_preserve_protocol_byte_stream(self):
+        data = bytes(range(256)) * 5
+        pieces = list(module.stream_pieces(data, 256))
+        self.assertEqual(b"".join(pieces), data)
+        self.assertEqual([len(piece) for piece in pieces], [256] * 5)
+
 if __name__ == "__main__":
     unittest.main()
