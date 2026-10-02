@@ -27,11 +27,14 @@ class ProtocolTests(unittest.TestCase):
         width, height, scaled = module.scale_to_width(width, height, cropped, 8)
         self.assertEqual((width, height, len(scaled)), (8, 4, 4))
 
-    def test_receipt_page_is_scaled_as_whole_page(self):
-        source = bytes([0x80] + [0] * 55) * 100
-        width, height, payload = module.prepare_page(448, 100, source, 384, "581")
-        self.assertEqual((width, height), (384, 86))
-        self.assertEqual(len(payload), 48 * 86)
+    def test_receipt_page_crops_ink_before_scaling(self):
+        source = bytearray(56 * 100)
+        for y in range(10, 90):
+            for x in range(100, 348):
+                source[y * 56 + x // 8] |= 0x80 >> (x & 7)
+        width, height, payload = module.prepare_page(448, 100, bytes(source), 384, "581")
+        self.assertEqual((width, height), (384, 124))
+        self.assertEqual(len(payload), 48 * 124)
 
     def test_darkness_threshold_is_conservative_and_bounded(self):
         self.assertEqual(module.darkness_threshold("darkness=0"), 100)

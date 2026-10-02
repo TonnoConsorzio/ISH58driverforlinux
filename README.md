@@ -36,10 +36,10 @@ lp -d ish582-581 document.pdf
 
 The 581 printer uses 58 mm media with approximately 48 mm printable width.
 The 801 printer uses 80 mm media with approximately 72 mm printable width.
-The filter rasterizes at 203 dpi, keeps receipt-sized PDF geometry, scales the
-full page to printhead width, and trims only trailing white rows. Oversized
-A4/Letter pages use ink cropping before scaling. This prevents Firefox from
-cutting a 58 mm x 250 mm receipt while keeping receipt height variable.
+The filter rasterizes at 203 dpi, crops blank PDF canvas, scales the actual ink
+to printhead width, and trims trailing white rows. This prevents browser or
+OnlyOffice-generated canvas margins from shrinking a receipt while keeping
+receipt height variable.
 OnlyOffice PDFs, images printed through Firefox, Chrome and Firefox output are
 supported. Long receipts are sent as paced 256-byte USB pieces to avoid the
 small input-buffer limit present in some iSH582 firmware versions. Override
