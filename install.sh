@@ -82,6 +82,17 @@ lpadmin -p "ish582-$MODEL" -E -v "$URI" -P "$MODEL_DIR/ish582-$MODEL.ppd" \
 cupsenable "ish582-$MODEL"
 cupsaccept "ish582-$MODEL"
 
+# Migrate the old queue name used by browser print dialogs. It was often a raw
+# queue, which sent PDF/CUPS data directly to the ESC/POS printer as garbage.
+if lpstat -p ISH58 >/dev/null 2>&1; then
+    lpadmin -p ISH58 -E -v "$URI" -P "$MODEL_DIR/ish582-$MODEL.ppd" \
+        -o printer-is-shared=false -o Resolution=203dpi \
+        -o PageSize="$PAGE_SIZE" -o print-scaling=none
+    cupsenable ISH58
+    cupsaccept ISH58
+    echo "Migrated legacy queue ISH58 to the iSH582-$MODEL filter"
+fi
+
 echo "Installed ish582-$MODEL"
 echo "URI: $URI"
 echo "Print: lp -d ish582-$MODEL document.pdf"

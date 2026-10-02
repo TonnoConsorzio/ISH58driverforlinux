@@ -26,9 +26,18 @@ if command -v restorecon >/dev/null 2>&1; then
 fi
 
 if [ -n "$URI" ]; then
-    lpadmin -p ish582-$MODEL -E -v "$URI" -P /usr/share/cups/model/ish582-$MODEL.ppd
+    PPD=/usr/share/cups/model/ish582-$MODEL.ppd
+    PAGE_SIZE=Roll58
+    [ "$MODEL" = 801 ] && PAGE_SIZE=Roll80
+    lpadmin -p ish582-$MODEL -E -v "$URI" -P "$PPD" -o PageSize="$PAGE_SIZE" -o Resolution=203dpi
     cupsenable ish582-$MODEL
     cupsaccept ish582-$MODEL
+    if lpstat -p ISH58 >/dev/null 2>&1; then
+        lpadmin -p ISH58 -E -v "$URI" -P "$PPD" -o PageSize="$PAGE_SIZE" -o Resolution=203dpi
+        cupsenable ISH58
+        cupsaccept ISH58
+        echo "Migrated legacy queue ISH58"
+    fi
     echo "Queue ish582-$MODEL configured at $URI"
 else
     echo "Driver installed. Configure the queue, for example:"

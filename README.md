@@ -49,7 +49,10 @@ level 5 is default and reduces gray antialiasing that can look blurred on
 thermal paper.
 
 Silent printing from a normal web page remains controlled by browser security
-policies; the driver exposes the standard CUPS queue `ish582-581`.
+policies; the driver exposes the standard CUPS queue `ish582-581`. Re-running
+`install.sh` also migrates an existing legacy `ISH58` queue from raw mode to the
+same filtered queue, so Firefox and Chrome cannot send PDF bytes directly to
+the printer.
 
 ## Development
 
